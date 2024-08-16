@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +45,7 @@ public class StudentServiceImpl implements StudentService {
 	public StudentDto removeStudent(Long id) {
 		Student student = studentRepository.findById(id).orElseThrow(StudentNotFoundException::new);
 		studentRepository.deleteById(id);
-		return new StudentDto(id, student.getName(), student.getScores());
+		return modelMapper.map(student, StudentDto.class);
 	}
 
 	@Override
@@ -57,7 +58,7 @@ public class StudentServiceImpl implements StudentService {
 			student.setPassword(studentUpdateDto.getPassword());
 		}
 		studentRepository.save(student);
-		return new StudentAddDto(student.getId(), student.getName(), student.getPassword());
+		return modelMapper.map(student, StudentAddDto.class);
 	}
 
 	@Override
@@ -70,7 +71,7 @@ public class StudentServiceImpl implements StudentService {
 	@Override
 	public List<StudentDto> findStudentsByName(String name) {
 		return studentRepository.findByNameIgnoreCase(name)
-				.map(s -> new StudentDto(s.getId(), s.getName(), s.getScores()))
+				.map(s -> modelMapper.map(s, StudentDto.class))
 				.collect(Collectors.toList());
 
 	}
@@ -79,14 +80,14 @@ public class StudentServiceImpl implements StudentService {
 	public Long getStudentsQuantityByNames(Set<String> names) {
 		return studentRepository.findAll()
 				.stream()
-				.filter(s -> names.contains(s.getName()))			//need to fix problem with lower case
+				.filter(s -> names.contains(s.getName()))			
 				.count();
 	}
 
 	@Override
 	public List<StudentDto> getStudentsByExamMinScore(String exam, Integer minScore) {
 		return studentRepository.findByExamAndScoreGreaterThan(exam, minScore)
-				.map(s -> new StudentDto(s.getId(), s.getName(), s.getScores()))
+				.map(s -> modelMapper.map(s, StudentDto.class))
 				.collect(Collectors.toList());
 	}
 
